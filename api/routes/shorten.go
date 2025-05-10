@@ -35,7 +35,8 @@ func ShortenURL(c *fiber.Ctx) error {
 		})
 	}
 
-	//implement rate limit
+	println("Managing rate limit")
+	//Manage rate limit
 	db2 := database.CreateClient(1)
 	defer db2.Close()
 	value, err := db2.Get(database.Ctx, c.IP()).Result()
@@ -43,14 +44,14 @@ func ShortenURL(c *fiber.Ctx) error {
 		db2.Set(database.Ctx, c.IP(), os.Getenv("API_QUOTA"), 30*60*time.Second).Err()
 	} else if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Something when wrong",
+			"error": "Unable to connect to database",
 		})
 	}
-	//convert result into int
+
 	valueInt, err := strconv.Atoi(value)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Something when wrong",
+			"error": "Something when wrong while converting",
 		})
 	}
 	if valueInt <= 0 {
@@ -103,7 +104,7 @@ func ShortenURL(c *fiber.Ctx) error {
 	err = db1.Set(database.Ctx, id, body.URL, body.Expiry*3600*time.Second).Err()
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Unable to connect to DB",
+			"error": "Unable to connect to database",
 		})
 	}
 
